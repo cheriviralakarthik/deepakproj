@@ -1,0 +1,65 @@
+import logo from './logo.svg';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './App.css';
+import Nav from './navbar';
+import Drop from './body';
+import Home from './home';
+import { useState,useEffect } from 'react';
+import { storage } from './firebase';
+import { ref, uploadBytes,listAll,getDownloadURL } from 'firebase/storage';
+import { v4 } from 'uuid';
+
+
+function App() {
+  const [imageupload,setimageupload]=useState(null);
+  const[imagelist,setimagelist]=useState([]);
+
+  const imagelistref=ref(storage,"images/")
+  const uploadimage=()=>{
+    if(imageupload==null) return;
+    const imageref=ref(storage,`images/${imageupload.name +v4()}`);
+    uploadBytes(imageref,imageupload).then((response)=>{
+      alert("image uploaded");
+      
+    })
+
+
+
+  }
+  useEffect(()=>{
+    listAll(imagelistref).then((response)=>{
+      console.log("responded");
+      response.items.forEach((item)=>{
+        getDownloadURL(item).then((url)=>{
+          setimagelist((prev)=>[...prev,url]);
+      
+        })
+
+      })
+    })
+
+  },[]);
+  
+  return (
+    
+    <div  >
+      <Home/>
+      <h1>hello</h1>
+      <div className='App'>
+        <input type="file" onChange={(event)=>{setimageupload(event.target.files[0])}}/>
+        <button onClick={uploadimage}>upload image</button>
+        {imagelist.map((url)=>{
+          return <img src={url}/>
+        })}
+
+        
+      </div>
+    </div>
+    
+    
+    
+   
+  );
+}
+
+export default App;
